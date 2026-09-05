@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>우리집 듀오링고 🦉 | 300일 영어 챌린지</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Noto Sans KR', -apple-system, sans-serif; background-color: #ffffff; }
+        .duo-green { background-color: #58CC02; color: white; }
+        .duo-green:hover { background-color: #4dae02; }
+        .duo-blue { background-color: #1CB0F6; color: white; }
+        .duo-blue:hover { background-color: #1899d6; }
+        .duo-purple { background-color: #CE82FF; color: white; }
+        .duo-purple:hover { background-color: #b56ce6; }
+        .duo-red { background-color: #FF4B4B; color: white; }
+        .option-btn { transition: all 0.1s; border-bottom: 4px solid #e5e7eb; }
+        .option-btn:active { border-bottom-width: 0px; transform: translateY(4px); }
+        .option-btn.selected { border-color: #1CB0F6; background-color: #DDF4FF; color: #1CB0F6; }
+        .option-btn.correct { border-color: #58CC02; background-color: #d7ffb8; color: #58CC02; }
+        .option-btn.wrong { border-color: #FF4B4B; background-color: #ffdfe0; color: #FF4B4B; }
+        .level-btn { transition: all 0.15s; border-bottom: 6px solid; }
+        .level-btn:active { border-bottom-width: 2px; transform: translateY(4px); }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="flex flex-col items-center min-h-screen bg-gray-50">
+
+    <!-- ========== 화면 1: 시작 화면 ========== -->
+    <div id="home-screen" class="w-full max-w-md p-6 fade-in">
+        <div class="text-center mb-8 mt-8">
+            <div class="text-7xl mb-4">🦉</div>
+            <h1 class="text-3xl font-black text-gray-800 mb-2">우리집 듀오링고</h1>
+            <p class="text-gray-500">300일 영어 챌린지</p>
+        </div>
+
+        <!-- 통계 카드 -->
+        <div class="grid grid-cols-3 gap-3 mb-8">
+            <div class="bg-white rounded-xl p-4 text-center shadow-sm border border-gray-100">
+                <div class="text-2xl">🔥</div>
+                <div id="streak-count" class="text-xl font-black text-orange-500">0</div>
+                <div class="text-xs text-gray-500">연속일</div>
+            </div>
+            <div class="bg-white rounded-xl p-4 text-center shadow-sm border border-gray-100">
+                <div class="text-2xl">⭐</div>
+                <div id="total-xp" class="text-xl font-black text-yellow-500">0</div>
+                <div class="text-xs text-gray-500">총 XP</div>
+            </div>
+            <div class="bg-white rounded-xl p-4 text-center shadow-sm border border-gray-100">
+                <div class="text-2xl">📅</div>
+                <div id="day-count" class="text-xl font-black text-blue-500">1</div>
+                <div class="text-xs text-gray-500">Day</div>
+            </div>
+        </div>
+
+        <!-- 난이도 선택 -->
+        <h2 class="text-lg font-bold text-gray-700 mb-4">오늘의 난이도를 선택하세요</h2>
+        <div class="space-y-3">
+            <button onclick="startLevel('beginner')" 
+                class="level-btn w-full p-5 rounded-xl bg-green-50 border-green-500 text-left flex items-center gap-4">
+                <div class="text-4xl">🌱</div>
+                <div class="flex-1">
+                    <div class="font-black text-green-700 text-lg">초급 (Beginner)</div>
+                    <div class="text-sm text-gray-600">기초 회화, 일상 표현</div>
+                </div>
+                <div class="text-green-600 font-bold">→</div>
+            </button>
+            <button onclick="startLevel('intermediate')" 
+                class="level-btn w-full p-5 rounded-xl bg-blue-50 border-blue-500 text-left flex items-center gap-4">
+                <div class="text-4xl">🌿</div>
+                <div class="flex-1">
+                    <div class="font-black text-blue-700 text-lg">중급 (Intermediate)</div>
+                    <div class="text-sm text-gray-600">여행, 비즈니스, 토론</div>
+                </div>
+                <div class="text-blue-600 font-bold">→</div>
+            </button>
+            <button onclick="startLevel('advanced')" 
+                class="level-btn w-full p-5 rounded-xl bg-purple-50 border-purple-500 text-left flex items-center gap-4">
+                <div class="text-4xl">🌳</div>
+                <div class="flex-1">
+                    <div class="font-black text-purple-700 text-lg">고급 (Advanced)</div>
+                    <div class="text-sm text-gray-600">뉴스, 관용구, 심화 표현</div>
+                </div>
+                <div class="text-purple-600 font-bold">→</div>
+            </button>
+        </div>
+
+        <button onclick="resetProgress()" class="mt-8 w-full text-sm text-gray-400 hover:text-gray-600">
+            🔄 진행 상황 초기화
+        </button>
+    </div>
+
+    <!-- ========== 화면 2: 학습 화면 ========== -->
+    <div id="quiz-screen" class="hidden w-full max-w-md p-4 fade-in">
+        <!-- 헤더 -->
+        <div class="flex items-center gap-3 mb-6 mt-2">
+            <button onclick="exitQuiz()" class="text-gray-400 text-2xl">✕</button>
+            <div class="flex-1 bg-gray-200 rounded-full h-4 overflow-hidden">
+                <div id="progress-bar" class="duo-green h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <div class="flex items-center gap-1 text-red-500 font-bold">
+                <span>❤️</span> <span id="hearts">5</span>
+            </div>
+        </div>
+
+        <!-- 문제 영역 -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm mb-24 min-h-[300px]">
+            <div id="category-tag" class="inline-block px-3 py-1 bg-gray-100 rounded-full text-xs font-bold text-gray-600 mb-4"></div>
+            <h2 id="question-prompt" class="text-xl font-bold text-gray-800 mb-6"></h2>
+            <div id="options-container" class="grid grid-cols-1 gap-3"></div>
+        </div>
+
+        <!-- 확인 버튼 -->
+        <div class="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 max-w-md mx-auto">
+            <button id="check-btn" onclick="checkAnswer()" disabled
+                class="w-full py-4 rounded-xl font-bold text-lg text-white bg-gray-300 cursor-not-allowed">
+                확인
+            </button>
+        </div>
+    </div>
+
+    <!-- ========== 화면 3: 결과 화면 ========== -->
+    <div id="result-screen" class="hidden w-full max-w-md p-6 text-center fade-in">
+        <div class="mt-12">
+            <div id="result-emoji" class="text-8xl mb-4">🎉</div>
+            <h1 id="result-title" class="text-3xl font-black text-gray-800 mb-2">레슨 완료!</h1>
+            <p id="result-subtitle" class="text-gray-500 mb-8">오늘도 열심히 했어요!</p>
+            
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <div class="text-3xl font-black text-yellow-500" id="result-xp">0</div>
+                        <div class="text-xs text-gray-500">획득 XP</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-black text-green-500" id="result-correct">0</div>
+                        <div class="text-xs text-gray-500">정답</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-black text-orange-500" id="result-streak">0</div>
+                        <div class="text-xs text-gray-500">연속일</div>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="goHome()" class="w-full py-4 rounded-xl font-bold text-lg duo-green shadow-[0_4px_0_0_#46a302] active:shadow-none active:translate-y-1">
+                계속하기
+            </button>
+        </div>
+    </div>
+
+    <!-- 피드백 바 -->
+    <div id="feedback-bar" class="hidden fixed bottom-0 left-0 right-0 p-6 text-white font-bold text-center max-w-md mx-auto">
+        <p id="feedback-text"></p>
+        <button id="continue-btn" onclick="nextQuestion()" class="mt-4 px-8 py-2 rounded-xl bg-white text-gray-800 font-bold">
+            계속
+        </button>
+    </div>
+
+<script>
+// ================= 문제 데이터 (초/중/고급 각 100문제+) =================
+// 각 카테고리별 다양한 상황의 문제들
+const questionsDB = {
+    beginner: [
+        // 자기소개 / 인사
+        { cat: "인사", prompt: "'안녕하세요'를 영어로 하면?", options: ["Hello", "Goodbye", "Sorry", "Thanks"], answer: "Hello" },
+        { cat: "인사", prompt: "'좋은 아침이에요'를 영어로 하면?", options: ["Good morning", "Good night", "Good evening", "Good afternoon"], answer: "Good morning" },
+        { cat: "인사", prompt: "'만나서 반갑습니다'를 영어로 하면?", options: ["Nice to meet you", "See you later", "How are you?", "Take care"], answer: "Nice to meet you" },
+        { cat: "인사", prompt: "'잘 자요'를 영어로 하면?", options: ["Good night", "Good morning", "Goodbye", "Hello"], answer: "Good night" },
+        // 숫자 / 시간
+        { cat: "숫자", prompt: "'일곱'을 영어로 하면?", options: ["Seven", "Six", "Eight", "Nine"], answer: "Seven" },
+        { cat: "숫자", prompt: "'지금 몇 시예요?'를 영어로 하면?", options: ["What time is it?", "How old are you?", "Where are you?", "Who are you?"], answer: "What time is it?" },
+        { cat: "숫자", prompt: "'내 나이는 스물다섯 살이에요'를 영어로 하면?", options: ["I'm 25 years old.", "I have 25.", "My 25 year.", "25 years me."], answer: "I'm 25 years old." },
+        // 가족
+        { cat: "가족", prompt: "'제 이름은 민수입니다'를 영어로 하면?", options: ["My name is Minsu.", "I name Minsu.", "Minsu is me.", "Call me Minsu name."], answer: "My name is Minsu." },
+        { cat: "가족", prompt: "'mother'의 뜻은?", options: ["어머니", "아버지", "형제", "자매"], answer: "어머니" },
+        { cat: "가족", prompt: "'저는 형제가 둘 있어요'를 영어로 하면?", options: ["I have two siblings.", "I am two siblings.", "My siblings two.", "Two siblings have I."], answer: "I have two siblings." },
+        // 음식
+        { cat: "음식", prompt: "'물 한 잔 주세요'를 영어로 하면?", options: ["Can I have a glass of water, please?", "Give water now.", "Water me.", "I drink water."], answer: "Can I have a glass of water, please?" },
+        { cat: "음식", prompt: "'coffee'의 뜻은?", options: ["커피", "차", "우유", "주스"], answer: "커피" },
+        { cat: "음식", prompt: "'배고파요'를 영어로 하면?", options: ["I'm hungry.", "I'm thirsty.", "I'm tired.", "I'm full."], answer: "I'm hungry." },
+        { cat: "음식", prompt: "'이 음식 정말 맛있어요'를 영어로 하면?", options: ["This food is delicious.", "This food bad.", "I hate this food.", "Food is okay."], answer: "This food is delicious." },
+        // 날씨
+        { cat: "날씨", prompt: "'오늘 날씨 어때요?'를 영어로 하면?", options: ["How's the weather today?", "What is today?", "Where is weather?", "When is rain?"], answer: "How's the weather today?" },
+        { cat: "날씨", prompt: "'비가 와요'를 영어로 하면?", options: ["It's raining.", "It's sunny.", "It's snowing.", "It's cloudy."], answer: "It's raining." },
+        { cat: "날씨", prompt: "'sunny'의 뜻은?", options: ["맑은", "흐린", "비 오는", "눈 오는"], answer: "맑은" },
+        // 취미
+        { cat: "취미", prompt: "'저는 영화 보는 걸 좋아해요'를 영어로 하면?", options: ["I like watching movies.", "I hate movies.", "Movie is me.", "I movies watch."], answer: "I like watching movies." },
+        { cat: "취미", prompt: "'hobby'의 뜻은?", options: ["취미", "직업", "학교", "가족"], answer: "취미" },
+        { cat: "취미", prompt: "'주말에 뭐 해요?'를 영어로 하면?", options: ["What do you do on weekends?", "Where weekend?", "When weekend?", "Why weekend?"], answer: "What do you do on weekends?" },
+        // 장소 / 길 찾기
+        { cat: "길찾기", prompt: "'화장실이 어디예요?'를 영어로 하면?", options: ["Where is the restroom?", "What restroom?", "When restroom?", "Why restroom?"], answer: "Where is the restroom?" },
+        { cat: "길찾기", prompt: "'지하철역이 가까워요'를 영어로 하면?", options: ["The subway station is close.", "Subway far.", "No subway.", "Subway is big."], answer: "The subway station is close." },
+        // 쇼핑
+        { cat: "쇼핑", prompt: "'이거 얼마예요?'를 영어로 하면?", options: ["How much is this?", "How many?", "What color?", "Where buy?"], answer: "How much is this?" },
+        { cat: "쇼핑", prompt: "'카드 돼요?'를 영어로 하면?", options: ["Can I pay by card?", "Cash only?", "Free?", "Expensive?"], answer: "Can I pay by card?" },
+        { cat: "쇼핑", prompt: "'영수증 주세요'를 영어로 하면?", options: ["Receipt, please.", "Bag, please.", "Change, please.", "Help, please."], answer: "Receipt, please." },
+        // 감정
+        { cat: "감정", prompt: "'기분이 좋아요'를 영어로 하면?", options: ["I feel good.", "I feel bad.", "I'm sad.", "I'm angry."], answer: "I feel good." },
+        { cat: "감정", prompt: "'tired'의 뜻은?", options: ["피곤한", "행복한", "화난", "슬픈"], answer: "피곤한" },
+        { cat: "감정", prompt: "'죄송합니다'를 영어로 하면?", options: ["I'm sorry.", "Thank you.", "Hello.", "Goodbye."], answer: "I'm sorry." },
+        // 일상
+        { cat: "일상", prompt: "'몇 시에 일어나요?'를 영어로 하면?", options: ["What time do you wake up?", "When sleep?", "Where wake?", "Why morning?"], answer: "What time do you wake up?" },
+        { cat: "일상", prompt: "'저는 매일 아침 운동을 해요'를 영어로 하면?", options: ["I exercise every morning.", "I never exercise.", "Exercise me.", "Morning is exercise."], answer: "I exercise every morning." },
+        { cat: "일상", prompt: "'쓰레기통 좀 비워줘'를 영어로 하면?", options: ["Take out the trash, please.", "Clean the room.", "Wash the dishes.", "Walk the dog."], answer: "Take out the trash, please." },
+        { cat: "일상", prompt: "'밥 먹을 시간이에요'를 영어로 하면?", options: ["It's time to eat.", "Time to sleep.", "Time to go.", "Time to study."], answer: "It's time to eat." },
+        { cat: "일상", prompt: "'이를 닦아요'를 영어로 하면?", options: ["I brush my teeth.", "I wash my face.", "I comb my hair.", "I take a shower."], answer: "I brush my teeth." },
+        // 동물
+        { cat: "동물", prompt: "'dog'의 뜻은?", options: ["강아지", "고양이", "새", "물고기"], answer: "강아지" },
+        { cat: "동물", prompt: "'저는 강아지를 키워요'를 영어로 하면?", options: ["I have a dog.", "I am dog.", "Dog is me.", "I dog have."], answer: "I have a dog." },
+        // 색상 / 옷
+        { cat: "색상", prompt: "'파란색'을 영어로 하면?", options: ["Blue", "Red", "Green", "Yellow"], answer: "Blue" },
+        { cat: "색상", prompt: "'오늘 무슨 색 옷 입었어요?'를 영어로 하면?", options: ["What color are you wearing today?", "Where color?", "When color?", "Why color?"], answer: "What color are you wearing today?" },
+        // 학교
+        { cat: "학교", prompt: "'선생님'을 영어로 하면?", options: ["Teacher", "Student", "Friend", "Doctor"], answer: "Teacher" },
+        { cat: "학교", prompt: "'숙제 했어?'를 영어로 하면?", options: ["Did you do your homework?", "Do homework?", "Homework where?", "When homework?"], answer: "Did you do your homework?" },
+        // 교통
+        { cat: "교통", prompt: "'버스를 타요'를 영어로 하면?", options: ["I take the bus.", "I bus.", "Bus me.", "Bus is go."], answer: "I take the bus." },
+        { cat: "교통", prompt: "'여기서 내려주세요'를 영어로 하면?", options: ["Please drop me off here.", "Stop car.", "I go now.", "Here stop."], answer: "Please drop me off here." },
+        // 건강
+        { cat: "건강", prompt: "'머리가 아파요'를 영어로 하면?", options: ["I have a headache.", "I'm happy.", "I'm hungry.", "I'm tired."], answer: "I have a headache." },
+        { cat: "건강", prompt: "'약국'을 영어로 하면?", options: ["Pharmacy", "Hospital", "School", "Bank"], answer: "Pharmacy" },
+        // 전화
+        { cat: "전화", prompt: "'전화 좀 바꿔주세요'를 영어로 하면?", options: ["Can I speak to ~, please?", "Give phone.", "I call you.", "Phone here."], answer: "Can I speak to ~, please?" },
+        { cat: "전화", prompt: "'거기 누구세요?'를 영어로 하면?", options: ["Who's calling, please?", "Who you?", "Name?", "Hello who?"], answer: "Who's calling, please?" },
+        // 날짜
+        { cat: "날짜", prompt: "'오늘이 몇 월 며칠이에요?'를 영어로 하면?", options: ["What's the date today?", "What day?", "When today?", "How day?"], answer: "What's the date today?" },
+        { cat: "날짜", prompt: "'내일 봐요'를 영어로 하면?", options: ["See you tomorrow.", "See you yesterday.", "See you now.", "See you never."], answer: "See you tomorrow." },
+        // 집
+        { cat: "집", prompt: "'불 좀 꺼주세요'를 영어로 하면?", options: ["Please turn off the light.", "Light on.", "Light here.", "Give light."], answer: "Please turn off the light." },
+        { cat: "집", prompt: "'문 좀 닫아주세요'를 영어로 하면?", options: ["Please close the door.", "Open door.", "Door here.", "Door go."], answer: "Please close the door." },
+        // 동사
+        { cat: "동사", prompt: "'go'의 과거형은?", options: ["went", "goed", "going", "gone"], answer: "went" },
+        { cat: "동사", prompt: "'eat'의 과거형은?", options: ["ate", "eated", "eating", "eats"], answer: "ate" },
+        { cat: "동사", prompt: "'have'의 3인칭 단수 현재형은?", options: ["has", "haves", "having", "had"], answer: "has" },
+        // 의문사
+        { cat: "의문사", prompt: "'어디'를 영어로 하면?", options: ["Where", "When", "Why", "Who"], answer: "Where" },
+        { cat: "의문사", prompt: "'왜'를 영어로 하면?", options: ["Why", "Where", "When", "What"], answer: "Why" },
+        // 형용사
+        { cat: "형용사", prompt: "'큰'을 영어로 하면?", options: ["Big", "Small", "Tall", "Short"], answer: "Big" },
+        { cat: "형용사", prompt: "'beautiful'의 뜻은?", options: ["아름다운", "추한", "큰", "작은"], answer: "아름다운" },
+        // 추가 초급 문제들
+        { cat: "일상", prompt: "'저는 한국 사람이에요'를 영어로 하면?", options: ["I'm Korean.", "I Korea.", "Korea me.", "Me from Korea is."], answer: "I'm Korean." },
+        { cat: "일상", prompt: "'영어를 조금 할 수 있어요'를 영어로 하면?", options: ["I can speak a little English.", "I English good.", "No English.", "English me."], answer: "I can speak a little English." },
+        { cat: "일상", prompt: "'다시 한 번 말해주세요'를 영어로 하면?", options: ["Could you say that again, please?", "Speak fast.", "No understand.", "Talk more."], answer: "Could you say that again, please?" },
+        { cat: "음식", prompt: "'메뉴판 주세요'를 영어로 하면?", options: ["Menu, please.", "Food now.", "I eat.", "What food?"], answer: "Menu, please." },
+        { cat: "쇼핑", prompt: "'사이즈가 달라요'를 영어로 하면?", options: ["The size is different.", "Size big.", "Size small.", "No size."], answer: "The size is different." },
+        { cat: "길찾기", prompt: "'멀어요?'를 영어로 하면?", options: ["Is it far?", "Far where?", "When far?", "Why far?"], answer: "Is it far?" },
+        { cat: "날씨", prompt: "'우산 가져가세요'를 영어로 하면?", options: ["Take an umbrella.", "No rain.", "Sun today.", "Cold day."], answer: "Take an umbrella." },
+        { cat: "감정", prompt: "'저는 행복해요'를 영어로 하면?", options: ["I'm happy.", "I'm sad.", "I'm angry.", "I'm bored."], answer: "I'm happy." },
+        { cat: "가족", prompt: "'제 아내'를 영어로 하면?", options: ["My wife", "My husband", "My sister", "My mom"], answer: "My wife" },
+        { cat: "취미", prompt: "'독서'를 영어로 하면?", options: ["Reading", "Running", "Swimming", "Cooking"], answer: "Reading" },
+        { cat: "일상", prompt: "'손 씻어요'를 영어로 하면?", options: ["Wash your hands.", "Wash face.", "Wash hair.", "Wash feet."], answer: "Wash your hands." },
+        { cat: "교통", prompt: "'택시 불러주세요'를 영어로 하면?", options: ["Please call a taxi.", "I go taxi.", "Taxi here.", "Need taxi."], answer: "Please call a taxi." },
+        { cat: "건강", prompt: "'감기 걸렸어요'를 영어로 하면?", options: ["I have a cold.", "I'm happy.", "I'm hungry.", "I'm fine."], answer: "I have a cold." },
+        { cat: "인사", prompt: "'오래간만이에요'를 영어로 하면?", options: ["Long time no see.", "Hello again.", "See you.", "Bye bye."], answer: "Long time no see." },
+        { cat: "전화", prompt: "'잠깐만요'를 영어로 하면?", options: ["Just a moment, please.", "Wait fast.", "No talk.", "Stop."], answer: "Just a moment, please." },
+        { cat: "숫자", prompt: "'반반씩 나누자'를 영어로 하면?", options: ["Let's split it 50/50.", "All mine.", "I pay all.", "No share."], answer: "Let's split it 50/50." },
+        { cat: "집", prompt: "'에어컨 좀 켜주세요'를 영어로 하면?", options: ["Please turn on the AC.", "Hot here.", "Cold please.", "AC me."], answer: "Please turn on the AC." },
+        { cat: "학교", prompt: "'질문 있어요'를 영어로 하면?", options: ["I have a question.", "No question.", "Ask me.", "Question where?"], answer: "I have a question." },
+        { cat: "동물", prompt: "'고양이'를 영어로 하면?", options: ["Cat", "Dog", "Bird", "Fish"], answer: "Cat" },
+        { cat: "색상", prompt: "'검은색'을 영어로 하면?", options: ["Black", "White", "Gray", "Brown"], answer: "Black" },
+        { cat: "동사", prompt: "'come'의 과거형은?", options: ["came", "comed", "coming", "comes"], answer: "came" },
+        { cat: "형용사", prompt: "'작은'을 영어로 하면?", options: ["Small", "Big", "Long", "Short"], answer: "Small" },
+        { cat: "의문사", prompt: "'언제'를 영어로 하면?", options: ["When", "Where", "Why", "What"], answer: "When" },
+        { cat: "일상", prompt: "'불 끄고 자요'를 영어로 하면?", options: ["Turn off the lights and sleep.", "Lights on.", "Sleep now.", "No sleep."], answer: "Turn off the lights and sleep." },
+        { cat: "음식", prompt: "'매운 음식 못 먹어요'를 영어로 하면?", options: ["I can't eat spicy food.", "I love spicy.", "Spicy good.", "More spicy."], answer: "I can't eat spicy food." },
+        { cat: "쇼핑", prompt: "'교환할 수 있어요?'를 영어로 하면?", options: ["Can I exchange this?", "No return.", "Buy more.", "Cheap please."], answer: "Can I exchange this?" },
+        { cat: "감정", prompt: "'걱정 마세요'를 영어로 하면?", options: ["Don't worry.", "Worry more.", "Be sad.", "Cry now."], answer: "Don't worry." },
+        { cat: "길찾기", prompt: "'왼쪽으로 도세요'를 영어로 하면?", options: ["Turn left.", "Turn right.", "Go straight.", "Go back."], answer: "Turn left." },
+        { cat: "날씨", prompt: "'추워요'를 영어로 하면?", options: ["It's cold.", "It's hot.", "It's warm.", "It's cool."], answer: "It's cold." },
+        { cat: "가족", prompt: "'제 남동생'을 영어로 하면?", options: ["My younger brother", "My older brother", "My sister", "My cousin"], answer: "My younger brother" },
+        { cat: "취미", prompt: "'음악 듣는 걸 좋아해요'를 영어로 하면?", options: ["I like listening to music.", "I hate music.", "Music is bad.", "No music."], answer: "I like listening to music." },
+        { cat: "건강", prompt: "'병원에 가야 해요'를 영어로 하면?", options: ["I have to go to the hospital.", "No hospital.", "Hospital far.", "Hospital closed."], answer: "I have to go to the hospital." },
+        { cat: "교통", prompt: "'교통 체증이 심해요'를 영어로 하면?", options: ["The traffic is heavy.", "No cars.", "Fast road.", "Empty street."], answer: "The traffic is heavy." },
+        { cat: "인사", prompt: "'잘 지내세요?'를 영어로 하면?", options: ["How have you been?", "Who are you?", "Where go?", "What name?"], answer: "How have you been?" },
+        { cat: "일상", prompt: "'일어나야 해요'를 영어로 하면?", options: ["I have to get up.", "I sleep more.", "No wake.", "Sleep now."], answer: "I have to get up." },
+        { cat: "전화", prompt: "'전화가 안 터져요'를 영어로 하면?", options: ["I don't have a signal.", "Call me.", "Phone good.", "Talk fast."], answer: "I don't have a signal." },
+        { cat: "숫자", prompt: "'세 번째'를 영어로 하면?", options: ["Third", "Three", "Thirty", "Thirteen"], answer: "Third" },
+        { cat: "동사", prompt: "'see'의 과거형은?", options: ["saw", "seed", "seeing", "seen"], answer: "saw" },
+        { cat: "형용사", prompt: "'비싼'을 영어로 하면?", options: ["Expensive", "Cheap", "Free", "Good"], answer: "Expensive" },
+        { cat: "의문사", prompt: "'누가'를 영어로 하면?", options: ["Who", "What", "Where", "When"], answer: "Who" },
+        { cat: "집", prompt: "'창문 열어주세요'를 영어로 하면?", options: ["Please open the window.", "Close window.", "No window.", "Window broken."], answer: "Please open the window." },
+        { cat: "학교", prompt: "'시험이 어려웠어요'를 영어로 하면?", options: ["The test was difficult.", "Test easy.", "No test.", "Test fun."], answer: "The test was difficult." },
+        { cat: "동물", prompt: "'새'를 영어로 하면?", options: ["Bird", "Fish", "Cat", "Dog"], answer: "Bird" },
+        { cat: "색상", prompt: "'노란색'을 영어로 하면?", options: ["Yellow", "Blue", "Red", "Green"], answer: "Yellow" },
+        { cat: "일상", prompt: "'샤워할게요'를 영어로 하면?", options: ["I'm going to take a shower.", "No shower.", "Shower broken.", "Cold water."], answer: "I'm going to take a shower." },
+        { cat: "음식", prompt: "'디저트 뭐 있어요?'를 영어로 하면?", options: ["What desserts do you have?", "No dessert.", "Sweet please.", "Cake only."], answer: "What desserts do you have?" },
+        { cat: "쇼핑", prompt: "'세일 중이에요'를 영어로 하면?", options: ["It's on sale.", "No sale.", "Full price.", "Expensive."], answer: "It's on sale." },
+        { cat: "감정", prompt: "'흥분돼요'를 영어로 하면?", options: ["I'm excited.", "I'm bored.", "I'm tired.", "I'm sad."], answer: "I'm excited." },
+        { cat: "길찾기", prompt: "'일직진 하세요'를 영어로 하면?", options: ["Go straight.", "Turn left.", "Turn right.", "Go back."], answer: "Go straight." },
+        { cat: "날씨", prompt: "'더워요'를 영어로 하면?", options: ["It's hot.", "It's cold.", "It's snowy.", "It's windy."], answer: "It's hot." },
+        { cat: "가족", prompt: "'조카'를 영어로 하면?", options: ["Nephew/Niece", "Cousin", "Uncle", "Aunt"], answer: "Nephew/Niece" },
+        { cat: "취미", prompt: "'여행'을 영어로 하면?", options: ["Travel", "Study", "Work", "Sleep"], answer: "Travel" }
+    ],
+    
+    intermediate: [
+        // 여행
+        { cat: "여행", prompt: "'공항에서 수하물을 찾아야 해요'를 영어로 하면?", options: ["I need to pick up my luggage at the airport.", "I lost my bag.", "Where is bag?", "Bag here."], answer: "I need to pick up my luggage at the airport." },
+        { cat: "여행", prompt: "'체크인 시간 몇 시예요?'를 영어로 하면?", options: ["What time is check-in?", "When sleep?", "Where room?", "How much room?"], answer: "What time is check-in?" },
+        { cat: "여행", prompt: "'boarding pass'의 뜻은?", options: ["탑승권", "여권", "비자", "예약표"], answer: "탑승권" },
+        { cat: "여행", prompt: "'호텔 예약 취소하고 싶어요'를 영어로 하면?", options: ["I'd like to cancel my hotel reservation.", "No hotel.", "Hotel bad.", "Cancel now."], answer: "I'd like to cancel my hotel reservation." },
+        { cat: "여행", prompt: "'경유지에서 몇 시간 기다려야 해요'를 영어로 하면?", options: ["I have to wait a few hours at the layover.", "Short wait.", "No wait.", "Fast flight."], answer: "I have to wait a few hours at the layover." },
+        // 비즈니스
+        { cat: "비즈니스", prompt: "'미팅을 다음 주로 미뤄도 될까요?'를 영어로 하면?", options: ["Could we postpone the meeting to next week?", "Meeting no.", "Later meeting.", "Change meeting."], answer: "Could we postpone the meeting to next week?" },
+        { cat: "비즈니스", prompt: "'제 명함입니다'를 영어로 하면?", options: ["Here's my business card.", "My name card.", "Card give.", "Take card."], answer: "Here's my business card." },
+        { cat: "비즈니스", prompt: "'deadline'의 뜻은?", options: ["마감 기한", "죽음의 선", "시작 시간", "중간 지점"], answer: "마감 기한" },
+        { cat: "비즈니스", prompt: "'예산 내에 맞춰야 해요'를 영어로 하면?", options: ["We need to stay within the budget.", "No money.", "More money.", "Budget big."], answer: "We need to stay within the budget." },
+        { cat: "비즈니스", prompt: "'계약서에 서명하겠습니다'를 영어로 하면?", options: ["I'll sign the contract.", "No sign.", "Contract bad.", "Sign later."], answer: "I'll sign the contract." },
+        // 감정 표현
+        { cat: "감정", prompt: "'요즘 좀 지쳐 있어요'를 영어로 하면?", options: ["I've been feeling burned out lately.", "I'm happy.", "I'm good.", "No tired."], answer: "I've been feeling burned out lately." },
+        { cat: "감정", prompt: "'그 소식에 정말 실망했어요'를 영어로 하면?", options: ["I was really disappointed by the news.", "News good.", "Happy news.", "No news."], answer: "I was really disappointed by the news." },
+        { cat: "감정", prompt: "'I'm thrilled'의 뜻은?", options: ["너무 신나요", "너무 슬퍼요", "화나요", "지쳐요"], answer: "너무 신나요" },
+        { cat: "감정", prompt: "'걱정돼서 잠을 못 자겠어요'를 영어로 하면?", options: ["I'm so worried I can't sleep.", "Sleep good.", "No worry.", "Sleep now."], answer: "I'm so worried I can't sleep." },
+        // 식당 / 주문
+        { cat: "식당", prompt: "'알레르기가 있는데 이 음식에 땅콩 들어있나요?'를 영어로 하면?", options: ["I have an allergy. Does this contain peanuts?", "No peanut?", "Peanut bad.", "Allergy here."], answer: "I have an allergy. Does this contain peanuts?" },
+        { cat: "식당", prompt: "'따로 계산해 주세요'를 영어로 하면?", options: ["Could we get separate checks, please?", "One bill.", "I pay all.", "No pay."], answer: "Could we get separate checks, please?" },
+        { cat: "식당", prompt: "'reservation'의 뜻은?", options: ["예약", "주문", "계산", "메뉴"], answer: "예약" },
+        { cat: "식당", prompt: "'스테이크는 미디엄 레어로 부탁드려요'를 영어로 하면?", options: ["I'd like my steak medium rare, please.", "Well done.", "Raw meat.", "No cook."], answer: "I'd like my steak medium rare, please." },
+        // 길 찾기 / 교통
+        { cat: "길찾기", prompt: "'이 지하철이 강남 가나요?'를 영어로 하면?", options: ["Does this subway go to Gangnam?", "Where go?", "Gangnam where?", "Subway fast?"], answer: "Does this subway go to Gangnam?" },
+        { cat: "길찾기", prompt: "'두 번째 사거리에서 우회전하세요'를 영어로 하면?", options: ["Turn right at the second intersection.", "Go left.", "Straight only.", "No turn."], answer: "Turn right at the second intersection." },
+        { cat: "길찾기", prompt: "'one-way street'의 뜻은?", options: ["편도 도로", "왕복 도로", "보행자 도로", "고속도로"], answer: "편도 도로" },
+        // 업무 / 이메일
+        { cat: "이메일", prompt: "'회신 기다리겠습니다'를 영어로 하면?", options: ["I look forward to your reply.", "Reply fast.", "No reply.", "Reply later."], answer: "I look forward to your reply." },
+        { cat: "이메일", prompt: "'첨부 파일 확인 부탁드립니다'를 영어로 하면?", options: ["Please check the attached file.", "No file.", "File here.", "See file."], answer: "Please check the attached file." },
+        { cat: "이메일", prompt: "'as soon as possible'의 뜻은?", options: ["가능한 한 빨리", "천천히", "내일", "다음 주"], answer: "가능한 한 빨리" },
+        // 문화 / 사회
+        { cat: "문화", prompt: "'한국에서는 나이를 묻는 게 일반적이에요'를 영어로 하면?", options: ["In Korea, it's common to ask someone's age.", "No ask age.", "Age secret.", "Age bad."], answer: "In Korea, it's common to ask someone's age." },
+        { cat: "문화", prompt: "'culture shock'의 뜻은?", options: ["문화 충격", "문화 축제", "문화 차이", "문화 교류"], answer: "문화 충격" },
+        // 건강 / 병원
+        { cat: "병원", prompt: "'어지러움이 느껴져요'를 영어로 하면?", options: ["I'm feeling dizzy.", "I'm happy.", "I'm hungry.", "I'm fine."], answer: "I'm feeling dizzy." },
+        { cat: "병원", prompt: "'prescription'의 뜻은?", options: ["처방전", "진료비", "예약", "진단"], answer: "처방전" },
+        { cat: "병원", prompt: "'보험이 적용되나요?'를 영어로 하면?", options: ["Does my insurance cover this?", "No insurance.", "Pay cash.", "Insurance bad."], answer: "Does my insurance cover this?" },
+        // 뉴스 / 시사
+        { cat: "뉴스", prompt: "'breaking news'의 뜻은?", options: ["속보", "가짜 뉴스", "스포츠 뉴스", "날씨 뉴스"], answer: "속보" },
+        { cat: "뉴스", prompt: "'기후 변화'를 영어로 하면?", options: ["Climate change", "Weather change", "Season change", "Temperature change"], answer: "Climate change" },
+        // 관계
+        { cat: "관계", prompt: "'오해가 있었던 것 같아요'를 영어로 하면?", options: ["I think there was a misunderstanding.", "No talk.", "You wrong.", "I right."], answer: "I think there was a misunderstanding." },
+        { cat: "관계", prompt: "'네 편을 들어줄게'를 영어로 하면?", options: ["I've got your back.", "I leave you.", "You alone.", "No help."], answer: "I've got your back." },
+        { cat: "관계", prompt: "'keep in touch'의 뜻은?", options: ["연락하며 지내자", "손 잡아", "만나자", "떠나자"], answer: "연락하며 지내자" },
+        // 취미 / 여가
+        { cat: "취미", prompt: "'최근에 취미로 요리를 시작했어요'를 영어로 하면?", options: ["I recently took up cooking as a hobby.", "I hate cook.", "No cook.", "Cook bad."], answer: "I recently took up cooking as a hobby." },
+        { cat: "취미", prompt: "' binge-watch'의 뜻은?", options: ["(드라마 등을) 몰아보다", "빨리 걷다", "많이 먹다", "잠을 많이 자다"], answer: "(드라마 등을) 몰아보다" },
+        // 쇼핑 / 환불
+        { cat: "쇼핑", prompt: "'이 제품 환불하고 싶어요'를 영어로 하면?", options: ["I'd like to get a refund for this product.", "No return.", "Keep it.", "Buy more."], answer: "I'd like to get a refund for this product." },
+        { cat: "쇼핑", prompt: "'out of stock'의 뜻은?", options: ["품절", "할인 중", "신상품", "인기 상품"], answer: "품절" },
+        // 문법 (중급)
+        { cat: "문법", prompt: "'If I ___ you, I would apologize.' 빈칸에 알맞은 것은?", options: ["were", "am", "was", "be"], answer: "were" },
+        { cat: "문법", prompt: "'I have lived here ___ 2010.' 빈칸에 알맞은 것은?", options: ["since", "for", "from", "at"], answer: "since" },
+        { cat: "문법", prompt: "'She suggested ___ a movie.' 빈칸에 알맞은 것은?", options: ["watching", "watch", "to watch", "watched"], answer: "watching" },
+        { cat: "문법", prompt: "'Neither you ___ I am right.' 빈칸에 알맞은 것은?", options: ["nor", "or", "and", "but"], answer: "nor" },
+        { cat: "문법", prompt: "'used to'의 뜻은?", options: ["예전에 ~하곤 했다", "사용하다", "~하는데 쓰이다", "~할 것이다"], answer: "예전에 ~하곤 했다" },
+        // 관용구
+        { cat: "관용구", prompt: "'break the ice'의 뜻은?", options: ["어색한 분위기를 깨다", "얼음을 깨다", "싸우다", "도망가다"], answer: "어색한 분위기를 깨다" },
+        { cat: "관용구", prompt: "'piece of cake'의 뜻은?", options: ["아주 쉬운 일", "맛있는 케이크", "비싼 선물", "어려운 문제"], answer: "아주 쉬운 일" },
+        { cat: "관용구", prompt: "'hit the books'의 뜻은?", options: ["공부하다", "책을 치다", "책 사다", "책 버리다"], answer: "공부하다" },
+        { cat: "관용구", prompt: "'under the weather'의 뜻은?", options: ["컨디션이 좋지 않다", "비가 온다", "날씨가 좋다", "우울하다"], answer: "컨디션이 좋지 않다" },
+        { cat: "관용구", prompt: "'once in a blue moon'의 뜻은?", options: ["아주 드물게", "매달", "매일", "가끔"], answer: "아주 드물게" },
+        // 추가 중급 문제들
+        { cat: "여행", prompt: "'여권 유효기간이 6개월 남았어요'를 영어로 하면?", options: ["My passport is valid for 6 more months.", "Passport expired.", "No passport.", "Passport new."], answer: "My passport is valid for 6 more months." },
+        { cat: "비즈니스", prompt: "'제안서를 보내드리겠습니다'를 영어로 하면?", options: ["I'll send you the proposal.", "No proposal.", "Proposal here.", "See proposal."], answer: "I'll send you the proposal." },
+        { cat: "감정", prompt: "'I'm overwhelmed'의 뜻은?", options: ["압도당했어요/감당 안 돼요", "행복해요", "화나요", "심심해요"], answer: "압도당했어요/감당 안 돼요" },
+        { cat: "식당", prompt: "'테이크아웃 가능해요?'를 영어로 하면?", options: ["Can I get this to go?", "Eat here.", "No take.", "Dine in."], answer: "Can I get this to go?" },
+        { cat: "이메일", prompt: "'죄송하지만 늦게 답변드려요'를 영어로 하면?", options: ["Sorry for the late reply.", "No sorry.", "Fast reply.", "Reply now."], answer: "Sorry for the late reply." },
+        { cat: "문화", prompt: "'jet lag'의 뜻은?", options: ["시차 적응", "비행기 지연", "수하물 분실", "항공권 변경"], answer: "시차 적응" },
+        { cat: "병원", prompt: "'약 부작용이 있어요'를 영어로 하면?", options: ["I'm having side effects from the medicine.", "Medicine good.", "No medicine.", "More medicine."], answer: "I'm having side effects from the medicine." },
+        { cat: "뉴스", prompt: "'inflation'의 뜻은?", options: ["인플레이션/물가 상승", "실업", "경기 침체", "성장"], answer: "인플레이션/물가 상승" },
+        { cat: "관계", prompt: "'우리 사이가 어색해진 것 같아요'를 영어로 하면?", options: ["I feel like things are awkward between us.", "We're best friends.", "No problem.", "All good."], answer: "I feel like things are awkward between us." },
+        { cat: "취미", prompt: "'I'm into hiking'의 뜻은?", options: ["저 등산에 빠져있어요", "등산 싫어요", "등산 못해요", "등산 배워요"], answer: "저 등산에 빠져있어요" },
+        { cat: "쇼핑", prompt: "'사이즈 큰 거로 바꿀 수 있어요?'를 영어로 하면?", options: ["Can I exchange this for a larger size?", "No change.", "Same size.", "Small only."], answer: "Can I exchange this for a larger size?" },
+        { cat: "문법", prompt: "'By the time we arrived, the movie ___.' 빈칸?", options: ["had started", "starts", "starting", "start"], answer: "had started" },
+        { cat: "관용구", prompt: "'cost an arm and a leg'의 뜻은?", options: ["아주 비싸다", "팔다리가 아프다", "병원에 가다", "운동하다"], answer: "아주 비싸다" },
+        { cat: "여행", prompt: "'가이드 투어 신청하고 싶어요'를 영어로 하면?", options: ["I'd like to sign up for a guided tour.", "No tour.", "Tour bad.", "Go alone."], answer: "I'd like to sign up for a guided tour." },
+        { cat: "비즈니스", prompt: "'팀원들과 상의해 볼게요'를 영어로 하면?", options: ["I'll discuss it with my team.", "No team.", "I decide.", "Team bad."], answer: "I'll discuss it with my team." },
+        { cat: "감정", prompt: "'그 말에 상처 받았어요'를 영어로 하면?", options: ["I was hurt by what you said.", "I'm happy.", "No hurt.", "Good words."], answer: "I was hurt by what you said." },
+        { cat: "식당", prompt: "'알레르기 주의'를 영어로 하면?", options: ["Allergy warning", "Spicy food", "Hot food", "Fresh food"], answer: "Allergy warning" },
+        { cat: "이메일", prompt: "'회의록 공유해주세요'를 영어로 하면?", options: ["Please share the meeting minutes.", "No minutes.", "Meeting bad.", "See meeting."], answer: "Please share the meeting minutes." },
+        { cat: "문화", prompt: "'time zone'의 뜻은?", options: ["시간대", "시간표", "시계", "알람"], answer: "시간대" },
+        { cat: "병원", prompt: "'증상이 얼마나 지속됐나요?'를 영어로 하면?", options: ["How long have you had these symptoms?", "No symptom.", "Symptom good.", "Fast cure."], answer: "How long have you had these symptoms?" },
+        { cat: "뉴스", prompt: "'global warming'의 뜻은?", options: ["지구 온난화", "한파", "태풍", "가뭄"], answer: "지구 온난화" },
+        { cat: "관계", prompt: "'네 결정을 존중할게'를 영어로 하면?", options: ["I respect your decision.", "No respect.", "You wrong.", "My way."], answer: "I respect your decision." },
+        { cat: "취미", prompt: "'I'm a big fan of K-drama'의 뜻은?", options: ["저 kdrama 열성팬이에요", "kdrama 싫어요", "kdrama 몰라요", "kdrama 봐요"], answer: "저 kdrama 열성팬이에요" },
+        { cat: "쇼핑", prompt: "'멤버십 할인 돼요?'를 영어로 하면?", options: ["Do you offer a membership discount?", "No discount.", "Full price.", "Cash only."], answer: "Do you offer a membership discount?" },
+        { cat: "문법", prompt: "'I wish I ___ more time.' 빈칸?", options: ["had", "have", "has", "having"], answer: "had" },
+        { cat: "관용구", prompt: "'let the cat out of the bag'의 뜻은?", options: ["비밀을 누설하다", "고양이를 풀어주다", "쇼핑하다", "속이다"], answer: "비밀을 누설하다" },
+        { cat: "여행", prompt: "'비자 연장 신청할 수 있어요?'를 영어로 하면?", options: ["Can I apply for a visa extension?", "No visa.", "Visa bad.", "Visa here."], answer: "Can I apply for a visa extension?" },
+        { cat: "비즈니스", prompt: "'이 건 우선순위 높아요'를 영어로 하면?", options: ["This is a high priority.", "No priority.", "Low priority.", "Later."], answer: "This is a high priority." },
+        { cat: "감정", prompt: "'I'm on cloud nine'의 뜻은?", options: ["하늘을 날 듯이 기쁘다", "구름 위에 있다", "우울하다", "피곤하다"], answer: "하늘을 날 듯이 기쁘다" },
+        { cat: "식당", prompt: "'이 음식 너무 짠데요'를 영어로 하면?", options: ["This dish is too salty.", "Sweet food.", "Spicy food.", "Good taste."], answer: "This dish is too salty." },
+        { cat: "이메일", prompt: "'다음 주 중으로 연락드릴게요'를 영어로 하면?", options: ["I'll get back to you sometime next week.", "No call.", "Call now.", "Call later."], answer: "I'll get back to you sometime next week." },
+        { cat: "문화", prompt: "'small talk'의 뜻은?", options: ["가벼운 잡담", "작은 대화", "중요한 대화", "비밀 대화"], answer: "가벼운 잡담" },
+        { cat: "병원", prompt: "'혈압 재주세요'를 영어로 하면?", options: ["Please check my blood pressure.", "No check.", "Blood bad.", "Pressure high."], answer: "Please check my blood pressure." },
+        { cat: "뉴스", prompt: "'recession'의 뜻은?", options: ["경기 침체", "호황", "성장", "안정"], answer: "경기 침체" },
+        { cat: "관계", prompt: "'네가 자랑스럽다'를 영어로 하면?", options: ["I'm proud of you.", "No proud.", "You bad.", "I shame."], answer: "I'm proud of you." },
+        { cat: "취미", prompt: "'I'm trying to cut down on sugar'의 뜻은?", options: ["설탕을 줄이려 해요", "설탕 많이 먹어요", "설탕 싫어요", "설탕 몰라요"], answer: "설탕을 줄이려 해요" },
+        { cat: "쇼핑", prompt: "'현금만 받아요'를 영어로 하면?", options: ["We only accept cash.", "Card okay.", "All payment.", "Free."], answer: "We only accept cash." },
+        { cat: "문법", prompt: "'He asked me where I ___.' 빈칸?", options: ["lived", "live", "lives", "living"], answer: "lived" },
+        { cat: "관용구", prompt: "'a blessing in disguise'의 뜻은?", options: ["화인 줄 알았는데 복", "숨은 축복", "재앙", "행운"], answer: "화인 줄 알았는데 복" },
+        { cat: "여행", prompt: "'환전 어디서 할 수 있어요?'를 영어로 하면?", options: ["Where can I exchange currency?", "No money.", "Money here.", "Cash only."], answer: "Where can I exchange currency?" },
+        { cat: "비즈니스", prompt: "'이슈를 빠르게 해결합시다'를 영어로 하면?", options: ["Let's resolve the issue quickly.", "No issue.", "Issue later.", "Issue bad."], answer: "Let's resolve the issue quickly." },
+        { cat: "감정", prompt: "'I'm fed up with this'의 뜻은?", options: ["이제 지긋지긋해요", "배불러요", "행복해요", "심심해요"], answer: "이제 지긋지긋해요" },
+        { cat: "식당", prompt: "'웨이트 타임이 얼마나 돼요?'를 영어로 하면?", options: ["How long is the wait?", "No wait.", "Fast food.", "Eat now."], answer: "How long is the wait?" },
+        { cat: "이메일", prompt: "'긴급 건입니다'를 영어로 하면?", options: ["This is urgent.", "No urgent.", "Later.", "Not important."], answer: "This is urgent." },
+        { cat: "문화", prompt: "'homesick'의 뜻은?", options: ["향수병/고향 그리움", "집 아픔", "집시", "여행"], answer: "향수병/고향 그리움" },
+        { cat: "병원", prompt: "'수술 받아야 해요'를 영어로 하면?", options: ["I need to have surgery.", "No surgery.", "Surgery bad.", "Medicine only."], answer: "I need to have surgery." },
+        { cat: "뉴스", prompt: "'headlines'의 뜻은?", options: ["뉴스 헤드라인/주요 제목", "머리띠", "모자", "헤어스타일"], answer: "뉴스 헤드라인/주요 제목" },
+        { cat: "관계", prompt: "'네가 보고 싶어'를 영어로 하면?", options: ["I miss you.", "I hate you.", "No see.", "Go away."], answer: "I miss you." },
+        { cat: "취미", prompt: "'I'm passionate about photography'의 뜻은?", options: ["사진에 열정적이에요", "사진 싫어요", "사진 몰라요", "사진 배워요"], answer: "사진에 열정적이에요" },
+        { cat: "쇼핑", prompt: "'무료 배송 돼요?'를 영어로 하면?", options: ["Do you offer free shipping?", "No shipping.", "Pay shipping.", "Fast shipping."], answer: "Do you offer free shipping?" },
+        { cat: "문법", prompt: "'She is used to ___ early.' 빈칸?", options: ["waking up", "wake up", "woke up", "wakes up"], answer: "waking up" },
+        { cat: "관용구", prompt: "'speak of the devil'의 뜻은?", options: "(공교롭게도) 그 사람 얘기를 했더니 나타나다", "악마를 부르다", "험담하다", "비밀을 말하다"], answer: "(공교롭게도) 그 사람 얘기를 했더니 나타나다" },
+        { cat: "여행", prompt: "'여행 보험 들었어요'를 영어로 하면?", options: ["I got travel insurance.", "No insurance.", "Insurance bad.", "Pay cash."], answer: "I got travel insurance." },
+        { cat: "비즈니스", prompt: "'피드백 감사합니다'를 영어로 하면?", options: ["Thank you for your feedback.", "No thanks.", "Feedback bad.", "No feedback."], answer: "Thank you for your feedback." },
+        { cat: "감정", prompt: "'I'm stressed out'의 뜻은?", options: ["스트레스 받았어요", "행복해요", "심심해요", "피곤해요"], answer: "스트레스 받았어요" },
+        { cat: "식당", prompt: "'물 리필 가능해요?'를 영어로 하면?", options: ["Can I get a refill on water?", "No water.", "Water here.", "Water bad."], answer: "Can I get a refill on water?" },
+        { cat: "이메일", prompt: "'회의 시간을 조율해요'를 영어로 하면?", options: ["Let's coordinate the meeting time.", "No meeting.", "Meeting bad.", "Meeting now."], answer: "Let's coordinate the meeting time." },
+        { cat: "문화", prompt: "'language barrier'의 뜻은?", options: ["언어 장벽", "언어 학습", "언어 교환", "언어 능력"], answer: "언어 장벽" }
+    ],
+    
+    advanced: [
+        // 비즈니스 심화
+        { cat: "비즈니스", prompt: "'저희 회사의 분기별 매출이 전년 대비 15% 성장했습니다'를 영어로 하면?", options: ["Our company's quarterly revenue grew 15% year-over-year.", "Sales good.", "Money up.", "Big growth."], answer: "Our company's quarterly revenue grew 15% year-over-year." },
+        { cat: "비즈니스", prompt: "'stakeholder'의 뜻은?", options: ["이해관계자", "주주", "직원", "고객"], answer: "이해관계자" },
+        { cat: "비즈니스", prompt: "'이 프로젝트를 우선순위에 두겠습니다'를 영어로 하면?", options: ["We'll prioritize this project.", "Project later.", "No project.", "Project bad."], answer: "We'll prioritize this project." },
+        { cat: "비즈니스", prompt: "'scalability'의 뜻은?", options: ["확장성", "비용", "시간", "품질"], answer: "확장성" },
+        { cat: "비즈니스", prompt: "'ROI가 기대에 미치지 못합니다'를 영어로 하면?", options: ["The ROI is falling short of expectations.", "ROI good.", "Money back.", "Profit high."], answer: "The ROI is falling short of expectations." },
+        // 뉴스 / 시사 심화
+        { cat: "뉴스", prompt: "'The administration rolled back the policy.'의 뜻은?", options: ["정부가 정책을 철회했다", "정부가 정책을 강화했다", "정부가 정책을 도입했다", "정부가 정책을 무시했다"], answer: "정부가 정책을 철회했다" },
+        { cat: "뉴스", prompt: "'geopolitical tensions'의 뜻은?", options: ["지정학적 긴장", "경제 위기", "사회 문제", "환경 문제"], answer: "지정학적 긴장" },
+        { cat: "뉴스", prompt: "'The bill passed with bipartisan support.'를 영어로 하면?", options: ["그 법안은 초당적 지지를 받으며 통과됐다", "법안 부결됐다", "법안 논의 중이다", "법안 반대 많다"], answer: "그 법안은 초당적 지지를 받으며 통과됐다" },
+        // 토론 / 의견
+        { cat: "토론", prompt: "'그 주장에는 일리가 있지만 전 반대합니다'를 영어로 하면?", options: ["I see their point, but I disagree.", "Totally agree.", "No idea.", "You wrong."], answer: "I see their point, but I disagree." },
+        { cat: "토론", prompt: "'counterargument'의 뜻은?", options: ["반박 논거", "주장", "예시", "결론"], answer: "반박 논거" },
+        { cat: "토론", prompt: "'That's a valid point, however...'를 영어로 하면?", options: ["타당한 지적이지만...", "틀린 말이야", "다시 말해", "예를 들면"], answer: "타당한 지적이지만..." },
+        // 관용구 심화
+        { cat: "관용구", prompt: "'the elephant in the room'의 뜻은?", options: ["모두가 알지만 언급하지 않는 민감한 문제", "큰 동물", "방 안의 코", "무시된 문제"], answer: "모두가 알지만 언급하지 않는 민감한 문제" },
+        { cat: "관용구", prompt: "'beat around the bush'의 뜻은?", options: ["돌려말하다/본론을 피하다", "나무를 치다", "정직하게 말하다", "빨리 말하다"], answer: "돌려말하다/본론을 피하다" },
+        { cat: "관용구", prompt: "'I'll play devil's advocate'의 뜻은?", options: ["반대 입장에서 논리를 펼쳐볼게", "악마를 부르겠다", "싸우겠다", "도망가겠다"], answer: "반대 입장에서 논리를 펼쳐볼게" },
+        { cat: "관용구", prompt: "'cut to the chase'의 뜻은?", options: ["본론으로 들어가다", "사냥을 자르다", "영화를 보다", "도망가다"], answer: "본론으로 들어가다" },
+        { cat: "관용구", prompt: "'a double-edged sword'의 뜻은?", options: ["양날의 검/장단점이 공존하는 것", "무기", "위험한 것", "좋은 것"], answer: "양날의 검/장단점이 공존하는 것" },
+        // 문학 / 표현
+        { cat: "문학", prompt: "'serendipity'의 뜻은?", options: ["뜻밖의 행운", "슬픔", "분노", "공포"], answer: "뜻밖의 행운" },
+        { cat: "문학", prompt: "'ephemeral'의 뜻은?", options: ["잠시뿐인/일시적인", "영원한", "큰", "작은"], answer: "잠시뿐인/일시적인" },
+        { cat: "문학", prompt: "'nostalgia'의 뜻은?", options: ["향수/그리움", "혐오", "공포", "희망"], answer: "향수/그리움" },
+        // 면접 / 자기소개
+        { cat: "면접", prompt: "'저의 가장 큰 강점은 문제 해결 능력입니다'를 영어로 하면?", options: ["My greatest strength is problem-solving.", "I'm weak.", "No strength.", "I'm bad."], answer: "My greatest strength is problem-solving." },
+        { cat: "면접", prompt: "'5년 후 제 모습은?' 질문에 가장 적절한 답은?", options: ["I see myself growing within this company.", "I don't know.", "Rich.", "Boss."], answer: "I see myself growing within this company." },
+        { cat: "면접", prompt: "'track record'의 뜻은?", options: ["실적/성과 기록", "기차 선로", "운동 기록", "음악 기록"], answer: "실적/성과 기록" },
+        // 프레젠테이션
+        { cat: "발표", prompt: "'오늘 발표의 핵심은 세 가지입니다'를 영어로 하면?", options: ["The key takeaway from today's presentation is threefold.", "Three points.", "Only three.", "Short talk."], answer: "The key takeaway from today's presentation is threefold." },
+        { cat: "발표", prompt: "'질문 있으시면 마지막에 받겠습니다'를 영어로 하면?", options: ["I'll take questions at the end.", "No questions.", "Ask now.", "Later."], answer: "I'll take questions at the end." },
+        { cat: "발표", prompt: "'To sum up...'의 뜻은?", options: ["요약하자면...", "시작하자면...", "예를 들면...", "반면..."], answer: "요약하자면..." },
+        // 과학 / 기술
+        { cat: "과학", prompt: "'artificial intelligence'의 뜻은?", options: ["인공지능", "자연과학", "가상현실", "로봇공학"], answer: "인공지능" },
+        { cat: "과학", prompt: "'sustainable'의 뜻은?", options: ["지속 가능한", "일시적인", "위험한", "비싼"], answer: "지속 가능한" },
+        { cat: "과학", prompt: "'The study sheds light on...'의 뜻은?", options: "~에 대한 통찰을 제공한다", "~를 밝힌다(물리)", "~를 숨긴다", "~를 무시한다"], answer: "~에 대한 통찰을 제공한다" },
+        // 철학 / 추상
+        { cat: "철학", prompt: "'paradigm shift'의 뜻은?", options: ["패러다임의 전환", "패러다임 실패", "새로운 시작", "끝"], answer: "패러다임의 전환" },
+        { cat: "철학", prompt: "'dilemma'의 뜻은?", options: ["딜레마/곤란한 선택", "행복", "평화", "성공"], answer: "딜레마/곤란한 선택" },
+        { cat: "철학", prompt: "'To be or not to be'의 출처는?", options: ["셰익스피어 햄릿", "성경", "아인슈타인", "플라톤"], answer: "셰익스피어 햄릿" },
+        // 유머 / 농담
+        { cat: "유머", prompt: "'Why did the chicken cross the road?' 농담의 의미는?", options: ["뻔한 질문에 뻔한 답(유머)", "실제 질문", "과학 질문", "철학 질문"], answer: "뻔한 질문에 뻔한 답(유머)" },
+        { cat: "유머", prompt: "'sarcasm'의 뜻은?", options: ["풍자/비꼬는 말", "칭찬", "진담", "농담"], answer: "풍자/비꼬는 말" },
+        // 고급 문법
+        { cat: "문법", prompt: "'Had I known earlier, I ___ differently.' 빈칸?", options: ["would have acted", "acted", "will act", "act"], answer: "would have acted" },
+        { cat: "문법", prompt: "'Not only ___ he smart, but he's also kind.' 빈칸?", options: ["is", "does", "has", "was"], answer: "is" },
+        { cat: "문법", prompt: "'scarcely...when'의 뜻은?", options: ["~하자마자 바로", "거의 ~하지 않다", "때때로", "절대 ~않다"], answer: "~하자마자 바로" },
+        // 추가 고급 문제들
+        { cat: "비즈니스", prompt: "'We need to pivot our strategy.'의 뜻은?", options: ["전략을 전환해야 한다", "전략을 포기한다", "전략이 완벽하다", "전략이 없다"], answer: "전략을 전환해야 한다" },
+        { cat: "뉴스", prompt: "'whistleblower'의 뜻은?", options: ["내부 고발자", "운동 선수", "경찰", "기자"], answer: "내부 고발자" },
+        { cat: "토론", prompt: "'I beg to differ.'의 뜻은?", options: ["죄송하지만 동의하지 않습니다", "전적으로 동의합니다", "모르겠습니다", "다시 말해주세요"], answer: "죄송하지만 동의하지 않습니다" },
+        { cat: "관용구", prompt: "'bite off more than you can chew'의 뜻은?", options: ["분수에 넘치는 일을 맡다", "많이 먹다", "빨리 일하다", "쉬운 일 하다"], answer: "분수에 넘치는 일을 맡다" },
+        { cat: "문학", prompt: "'melancholy'의 뜻은?", options: ["우울/애수", "기쁨", "분노", "두려움"], answer: "우울/애수" },
+        { cat: "면접", prompt: "'I thrive under pressure.'의 뜻은?", options: ["전 압박 속에서도 성과를 냅니다", "압박을 싫어합니다", "압박에 약합니다", "압박을 모릅니다"], answer: "전 압박 속에서도 성과를 냅니다" },
+        { cat: "발표", prompt: "'Let me elaborate on that point.'의 뜻은?", options: ["그 부분에 대해 좀 더 설명드리겠습니다", "그만두겠습니다", "다음으로 넘어가죠", "질문 받겠습니다"], answer: "그 부분에 대해 좀 더 설명드리겠습니다" },
+        { cat: "과학", prompt: "'empirical evidence'의 뜻은?", options: ["경험적/실증적 증거", "이론적 증거", "가짜 증거", "약한 증거"], answer: "경험적/실증적 증거" },
+        { cat: "철학", prompt: "'cognitive dissonance'의 뜻은?", options: ["인지 부조화", "인지 능력", "인지 발달", "인지 치료"], answer: "인지 부조화" },
+        { cat: "유머", prompt: "'punchline'의 뜻은?", options: ["농담의 결정적 한 방/결말", "주먹", "시작 부분", "중간 부분"], answer: "농담의 결정적 한 방/결말" },
+        { cat: "문법", prompt: "'Seldom ___ such a brilliant performance.' 빈칸?", options: ["have I seen", "I have seen", "I saw", "saw I"], answer: "have I seen" },
+        { cat: "비즈니스", prompt: "'due diligence'의 뜻은?", options: ["실사/철저한 조사", "성실한 근무", "지각", "당연한 일"], answer: "실사/철저한 조사" },
+        { cat: "뉴스", prompt: "'The scandal came to light.'의 뜻은?", options: ["스캔들이 드러났다", "스캔들이 사라졌다", "스캔들이 무시됐다", "스캔들이 시작됐다"], answer: "스캔들이 드러났다" },
+        { cat: "토론", prompt: "'That's a straw man argument.'의 뜻은?", options: ["그건 허수아비 논리(왜곡된 반박)다", "좋은 논리다", "강한 논리다", "약한 논리다"], answer: "그건 허수아비 논리(왜곡된 반박)다" },
+        { cat: "관용구", prompt: "'the ball is in your court'의 뜻은?", options: ["이제 네 차례야/네가 결정해", "공을 쳐라", "네가 졌다", "게임 끝"], answer: "이제 네 차례야/네가 결정해" },
+        { cat: "문학", prompt: "'ubiquitous'의 뜻은?", options: ["어디에나 있는", "드문", "큰", "작은"], answer: "어디에나 있는" },
+        { cat: "면접", prompt: "'Where do you see yourself in 5 years?'에 가장 적절한 답은?", options: ["I aim to take on more responsibilities and grow with the team.", "I don't know.", "Your job.", "Rich."], answer: "I aim to take on more responsibilities and grow with the team." },
+        { cat: "발표", prompt: "'Let's dive into the details.'의 뜻은?", options: ["자세히 살펴보겠습니다", "끝내겠습니다", "쉬겠습니다", "질문 받겠습니다"], answer: "자세히 살펴보겠습니다" },
+        { cat: "과학", prompt: "'hypothesis'의 뜻은?", options: ["가설", "법칙", "이론", "결론"], answer: "가설" },
+        { cat: "철학", prompt: "'existential crisis'의 뜻은?", options: ["실존적 위기", "경제 위기", "정치적 위기", "환경 위기"], answer: "실존적 위기" },
+        { cat: "유머", prompt: "'deadpan'의 뜻은?", options: ["무표정한 (유머 스타일)", "죽은 사람", "진지한", "화난"], answer: "무표정한 (유머 스타일)" },
+        { cat: "문법", prompt: "'Were it not for your help, I ___ failed.' 빈칸?", options: ["would have", "will", "had", "did"], answer: "would have" },
+        { cat: "비즈니스", prompt: "'We need to streamline the process.'의 뜻은?", options: ["프로세스를 간소화해야 한다", "프로세스를 복잡하게", "프로세스를 중단", "프로세스를 무시"], answer: "프로세스를 간소화해야 한다" },
+        { cat: "뉴스", prompt: "'The allegations are unsubstantiated.'의 뜻은?", options: ["그 주장은 입증되지 않았다", "주장이 입증됐다", "주장이 거짓이다", "주장이 중요하다"], answer: "그 주장은 입증되지 않았다" },
+        { cat: "토론", prompt: "'Let's agree to disagree.'의 뜻은?", options: ["서로 의견이 다름을 인정하고 끝내자", "동의하자", "싸우자", "다시 얘기하자"], answer: "서로 의견이 다름을 인정하고 끝내자" },
+        { cat: "관용구", prompt: "'burn the midnight oil'의 뜻은?", options: ["밤늦게까지 일하다", "기름을 태우다", "새벽에 자다", "쉬다"], answer: "밤늦게까지 일하다" },
+        { cat: "문학", prompt: "'resilience'의 뜻은?", options: ["회복력/탄력성", "약함", "슬픔", "분노"], answer: "회복력/탄력성" },
+        { cat: "면접", prompt: "'I'm a fast learner.'를 더 세련되게 표현하면?", options: ["I pick things up quickly.", "I'm smart.", "I know all.", "No learn."], answer: "I pick things up quickly." },
+        { cat: "발표", prompt: "'Any questions before we wrap up?'의 뜻은?", options: ["끝내기 전에 질문 있으신가요?", "질문 없나요?", "끝냅시다", "시작합시다"], answer: "끝내기 전에 질문 있으신가요?" },
+        { cat: "과학", prompt: "'correlation does not imply causation'의 뜻은?", options: ["상관관계가 인과관계를 의미하지는 않는다", "모든 것은 원인있다", "상관없다", "원인이 없다"], answer: "상관관계가 인과관계를 의미하지는 않는다" },
+        { cat: "철학", prompt: "'pragmatic'의 뜻은?", options: ["실용적인", "이상적인", "철학적인", "비현실적인"], answer: "실용적인" },
+        { cat: "유머", prompt: "'punny'의 뜻은?", options: ["말장난이 재밌는", "슬픈", "화나는", "지루한"], answer: "말장난이 재밌는" },
+        { cat: "문법", prompt: "'Under no circumstances ___ leave the building.' 빈칸?", options: ["should you", "you should", "you must", "do you"], answer: "should you" },
+        { cat: "비즈니스", prompt: "'bandwidth' (비즈니스 용어)의 뜻은?", options: ["(시간/에너지) 여유", "인터넷 속도", "주파수", "폭"], answer: "(시간/에너지) 여유" },
+        { cat: "뉴스", prompt: "'The policy has far-reaching implications.'의 뜻은?", options: ["그 정책은 광범위한 영향을 미친다", "정책이 멀다", "정책이 짧다", "정책이 약하다"], answer: "그 정책은 광범위한 영향을 미친다" },
+        { cat: "토론", prompt: "'That's a slippery slope argument.'의 뜻은?", options: ["그건 미끄러운 비탈길 논리(과장된 연쇄 반응)다", "좋은 논리다", "쉬운 논리다", "짧은 논리다"], answer: "그건 미끄러운 비탈길 논리(과장된 연쇄 반응)다" },
+        { cat: "관용구", prompt: "'the best of both worlds'의 뜻은?", options: ["두 세계의 장점/양쪽 다 좋은 점", "최고의 세계", "하나만 선택", "나쁜 선택"], answer: "두 세계의 장점/양쪽 다 좋은 점" },
+        { cat: "문학", prompt: "'ambiguous'의 뜻은?", options: ["모호한", "명확한", "큰", "작은"], answer: "모호한" },
+        { cat: "면접", prompt: "'I'm results-oriented.'의 뜻은?", options: ["전 결과 지향적입니다", "전 게으릅니다", "전 느립니다", "전 무관심합니다"], answer: "전 결과 지향적입니다" },
+        { cat: "발표", prompt: "'I'd like to draw your attention to...'의 뜻은?", options: "~에 주목해 주시기 바랍니다", "~를 무시하세요", "~를 잊으세요", "~를 바꾸세요"], answer: "~에 주목해 주시기 바랍니다" },
+        { cat: "과학", prompt: "'anomaly'의 뜻은?", options: ["이상/변칙", "정상", "규칙", "법칙"], answer: "이상/변칙" },
+        { cat: "철학", prompt: "'altruism'의 뜻은?", options: ["이타주의", "이기주의", "낙관주의", "염세주의"], answer: "이타주의" },
+        { cat: "유머", prompt: "'witty'의 뜻은?", options: ["재치 있는", "지루한", "화난", "슬픈"], answer: "재치 있는" },
+        { cat: "문법", prompt: "'No sooner ___ I sat down than the phone rang.' 빈칸?", options: ["had", "have", "did", "was"], answer: "had" },
+        { cat: "비즈니스", prompt: "'low-hanging fruit'의 뜻은?", options: ["쉽게 달성할 수 있는 목표", "어려운 목표", "값싼 것", "신선한 것"], answer: "쉽게 달성할 수 있는 목표" },
+        { cat: "뉴스", prompt: "'The report corroborates earlier findings.'의 뜻은?", options: ["보고서가 이전 발견을 뒷받침한다", "보고서가 반박한다", "보고서가 무시한다", "보고서가 변경한다"], answer: "보고서가 이전 발견을 뒷받침한다" },
+        { cat: "토론", prompt: "'Let's play devil's advocate for a moment.'의 뜻은?", options: ["잠시 반대 입장에서 생각해 봅시다", "악마를 불러봅시다", "싸우자", "도망가자"], answer: "잠시 반대 입장에서 생각해 봅시다" },
+        { cat: "관용구", prompt: "'on the same page'의 뜻은?", options: ["의견이 일치하는", "같은 책을 읽는", "같은 페이지", "같은 줄"], answer: "의견이 일치하는" },
+        { cat: "문학", prompt: "'profound'의 뜻은?", options: ["심오한", "얕은", "작은", "짧은"], answer: "심오한" },
+        { cat: "면접", prompt: "'I'm a team player.'를 더 구체적으로 표현하면?", options: ["I collaborate well with others to achieve common goals.", "I like teams.", "Team good.", "No solo."], answer: "I collaborate well with others to achieve common goals." },
+        { cat: "발표", prompt: "'This brings me to my next point.'의 뜻은?", options: ["이제 다음 주제로 넘어가겠습니다", "끝내겠습니다", "다시 시작합니다", "질문 받겠습니다"], answer: "이제 다음 주제로 넘어가겠습니다" },
+        { cat: "과학", prompt: "'peer-reviewed'의 뜻은?", options: ["동료 검토를 거친", "친구가 쓴", "검토 안 된", "비밀"], answer: "동료 검토를 거친" },
+        { cat: "철학", prompt: "'nihilism'의 뜻은?", options: ["허무주의", "실용주의", "이상주의", "낙관주의"], answer: "허무주의" },
+        { cat: "유머", prompt: "'dry humor'의 뜻은?", options: ["덤덤한 톤으로 하는 유머", "메마른 유머", "슬픈 유머", "화난 유머"], answer: "덤덤한 톤으로 하는 유머" },
+        { cat: "문법", prompt: "'Only after the meeting ___ the truth.' 빈칸?", options: ["did I learn", "I learned", "I did learn", "learned I"], answer: "did I learn" },
+        { cat: "비즈니스", prompt: "'We're in the red this quarter.'의 뜻은?", options: ["이번 분기 적자다", "이번 분기 흑자다", "이번 분기 빨갛다", "이번 분기 위험하다"], answer: "이번 분기 적자다" },
+        { cat: "뉴스", prompt: "'The allegations were debunked.'의 뜻은?", options: ["그 주장은 반박되어 거짓으로 판명났다", "주장이 사실로 판명났다", "주장이 무시됐다", "주장이 강화됐다"], answer: "그 주장은 반박되어 거짓으로 판명났다" },
+        { cat: "토론", prompt: "'That's a red herring.'의 뜻은?", options: ["그건 본질을 벗어난 엉뚱한 지적이다", "좋은 지적이다", "중요한 지적이다", "짧은 지적이다"], answer: "그건 본질을 벗어난 엉뚱한 지적이다" },
+        { cat: "관용구", prompt: "'a bitter pill to swallow'의 뜻은?", options: ["받아들이기 쓴(힘든) 진실", "약", "맛있는 것", "쉬운 것"], answer: "받아들이기 쓴(힘든) 진실" },
+        { cat: "문학", prompt: "'juxtapose'의 뜻은?", options: ["병치하다/대비되게 놓다", "합치다", "떼다", "버리다"], answer: "병치하다/대비되게 놓다" },
+        { cat: "면접", prompt: "'I'm adaptable.'를 더 구체적으로 표현하면?", options: ["I thrive in dynamic environments and embrace change.", "I change.", "Change good.", "No fixed."], answer: "I thrive in dynamic environments and embrace change." },
+        { cat: "발표", prompt: "'Let's circle back to that later.'의 뜻은?", options: ["그건 나중에 다시 다루겠습니다", "그만두겠습니다", "지금 끝내겠습니다", "무시하겠습니다"], answer: "그건 나중에 다시 다루겠습니다" },
+        { cat: "과학", prompt: "'mitigate'의 뜻은?", options: ["완화하다/줄이다", "증가하다", "무시하다", "강화하다"], answer: "완화하다/줄이다" },
+        { cat: "철학", prompt: "'stoicism'의 뜻은?", options: ["금욕주의/감정에 휩쓸리지 않음", "쾌락주의", "허무주의", "낙관주의"], answer: "금욕주의/감정에 휩쓸리지 않음" },
+        { cat: "유머", prompt: "'slapstick'의 뜻은?", options: ["몸개그/물리적 유머", "말장난", "풍자", "블랙코미디"], answer: "몸개그/물리적 유머" },
+        { cat: "문법", prompt: "'Little ___ he know what was about to happen.' 빈칸?", options: ["did", "does", "had", "was"], answer: "did" }
+    ]
+};
+
+// ================= 상태 관리 =================
+let currentLevel = null;
+let currentIndex = 0;
+let sessionQuestions = [];
+let selectedOption = null;
+let hearts = 5;
+let xp = 0;
+let correctCount = 0;
+
+// ================= LocalStorage 관리 =================
+function getStats() {
+    const stats = localStorage.getItem('familyLingoStats');
+    if (stats) return JSON.parse(stats);
+    return { totalXp: 0, streak: 0, lastDate: null, completedDays: [] };
+}
+
+function saveStats(stats) {
+    localStorage.setItem('familyLingoStats', JSON.stringify(stats));
+}
+
+function updateStreak() {
+    const stats = getStats();
+    const today = new Date().toDateString();
+    
+    if (stats.lastDate === today) return; // 오늘 이미 학습함
+    
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    if (stats.lastDate === yesterday.toDateString()) {
+        stats.streak += 1;
+    } else if (stats.lastDate !== today) {
+        stats.streak = 1;
+    }
+    
+    if (!stats.completedDays.includes(today)) {
+        stats.completedDays.push(today);
+    }
+    
+    stats.lastDate = today;
+    saveStats(stats);
+}
+
+function getDayNumber() {
+    const stats = getStats();
+    const firstDate = stats.completedDays.length > 0 ? new Date(stats.completedDays[0]) : new Date();
+    const today = new Date();
+    const diff = Math.floor((today - firstDate) / (1000 * 60 * 60 * 24)) + 1;
+    return Math.min(diff, 300);
+}
+
+// ================= 날짜 기반 문제 선택 (매일 다른 문제) =================
+function hashString(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash |= 0;
+    }
+    return Math.abs(hash);
+}
+
+function getDailyQuestions(level) {
+    const allQuestions = questionsDB[level];
+    const today = new Date().toDateString();
+    const seed = hashString(today + level);
+    
+    // 시드 기반 셔플
+    const shuffled = [...allQuestions].sort((a, b) => {
+        const hashA = hashString(a.prompt + seed);
+        const hashB = hashString(b.prompt + seed);
+        return hashA - hashB;
+    });
+    
+    // 20문제 선택
+    return shuffled.slice(0, 20);
+}
+
+// ================= UI 전환 =================
+function showScreen(screenId) {
+    ['home-screen', 'quiz-screen', 'result-screen'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+    });
+    document.getElementById(screenId).classList.remove('hidden');
+    document.getElementById(screenId).classList.add('fade-in');
+}
+
+function goHome() {
+    showScreen('home-screen');
+    updateHomeStats();
+}
+
+function updateHomeStats() {
+    const stats = getStats();
+    document.getElementById('streak-count').innerText = stats.streak;
+    document.getElementById('total-xp').innerText = stats.totalXp;
+    document.getElementById('day-count').innerText = getDayNumber();
+}
+
+function exitQuiz() {
+    if (confirm('정말 나가시겠어요? 진행 상황은 저장되지 않습니다.')) {
+        goHome();
+    }
+}
+
+function resetProgress() {
+    if (confirm('정말 모든 진행 상황을 초기화하시겠어요?')) {
+        localStorage.removeItem('familyLingoStats');
+        updateHomeStats();
+        alert('초기화되었습니다!');
+    }
+}
+
+// ================= 학습 시작 =================
+function startLevel(level) {
+    currentLevel = level;
+    sessionQuestions = getDailyQuestions(level);
+    currentIndex = 0;
+    hearts = 5;
+    xp = 0;
+    correctCount = 0;
+    
+    showScreen('quiz-screen');
+    loadQuestion();
+}
+
+// ================= 문제 로딩 =================
+function loadQuestion() {
+    if (currentIndex >= sessionQuestions.length) {
+        finishSession();
+        return;
+    }
+
+    const q = sessionQuestions[currentIndex];
+    document.getElementById('category-tag').innerText = q.cat;
+    document.getElementById('question-prompt').innerText = q.prompt;
+    
+    const container = document.getElementById('options-container');
+    container.innerHTML = '';
+    selectedOption = null;
+    updateCheckButton();
+
+    q.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.innerText = opt;
+        btn.className = 'option-btn w-full p-4 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-semibold text-left';
+        btn.onclick = () => selectOption(btn, opt);
+        container.appendChild(btn);
+    });
+
+    // 진행률 업데이트
+    const progress = (currentIndex / sessionQuestions.length) * 100;
+    document.getElementById('progress-bar').style.width = `${progress}%`;
+    document.getElementById('hearts').innerText = hearts;
+}
+
+function selectOption(btn, value) {
+    document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedOption = value;
+    updateCheckButton();
+}
+
+function updateCheckButton() {
+    const btn = document.getElementById('check-btn');
+    if (selectedOption) {
+        btn.disabled = false;
+        btn.className = 'w-full py-4 rounded-xl font-bold text-lg text-white duo-green cursor-pointer shadow-[0_4px_0_0_#46a302] active:shadow-none active:translate-y-1 transition-all';
+    } else {
+        btn.disabled = true;
+        btn.className = 'w-full py-4 rounded-xl font-bold text-lg text-white bg-gray-300 cursor-not-allowed';
+    }
+}
+
+// ================= 정답 확인 =================
+function checkAnswer() {
+    const q = sessionQuestions[currentIndex];
+    const isCorrect = selectedOption === q.answer;
+    const feedbackBar = document.getElementById('feedback-bar');
+    const feedbackText = document.getElementById('feedback-text');
+    const continueBtn = document.getElementById('continue-btn');
+
+    document.getElementById('check-btn').classList.add('hidden');
+
+    document.querySelectorAll('.option-btn').forEach(btn => {
+        if (btn.innerText === q.answer) btn.classList.add('correct');
+        else if (btn.classList.contains('selected') && !isCorrect) btn.classList.add('wrong');
+        btn.onclick = null;
+    });
+
+    feedbackBar.classList.remove('hidden');
+    if (isCorrect) {
+        feedbackBar.className = 'fixed bottom-0 left-0 right-0 p-6 bg-green-100 border-t-2 border-green-500 text-green-700 font-bold text-center max-w-md mx-auto';
+        feedbackText.innerText = '🎉 정답입니다! +10 XP';
+        xp += 10;
+        correctCount++;
+    } else {
+        feedbackBar.className = 'fixed bottom-0 left-0 right-0 p-6 bg-red-100 border-t-2 border-red-500 text-red-700 font-bold text-center max-w-md mx-auto';
+        feedbackText.innerText = `😢 틀렸습니다. 정답: ${q.answer}`;
+        hearts--;
+        document.getElementById('hearts').innerText = hearts;
+        
+        if (hearts <= 0) {
+            continueBtn.innerText = '결과 보기';
+            continueBtn.onclick = () => {
+                feedbackBar.classList.add('hidden');
+                finishSession();
+            };
+            return;
+        }
+    }
+    
+    continueBtn.innerText = '계속';
+    continueBtn.onclick = nextQuestion;
+}
+
+function nextQuestion() {
+    currentIndex++;
+    document.getElementById('feedback-bar').classList.add('hidden');
+    document.getElementById('check-btn').classList.remove('hidden');
+    loadQuestion();
+}
+
+// ================= 세션 종료 =================
+function finishSession() {
+    // 통계 업데이트
+    const stats = getStats();
+    stats.totalXp += xp;
+    saveStats(stats);
+    updateStreak();
+    
+    // 결과 화면 표시
+    const updatedStats = getStats();
+    document.getElementById('result-xp').innerText = xp;
+    document.getElementById('result-correct').innerText = `${correctCount}/20`;
+    document.getElementById('result-streak').innerText = updatedStats.streak;
+    
+    if (correctCount >= 18) {
+        document.getElementById('result-emoji').innerText = '🏆';
+        document.getElementById('result-title').innerText = '완벽해요!';
+        document.getElementById('result-subtitle').innerText = '정말 대단합니다!';
+    } else if (correctCount >= 14) {
+        document.getElementById('result-emoji').innerText = '🎉';
+        document.getElementById('result-title').innerText = '잘 했어요!';
+        document.getElementById('result-subtitle').innerText = '꾸준히 하면 실력 느는 거 알죠?';
+    } else if (correctCount >= 10) {
+        document.getElementById('result-emoji').innerText = '💪';
+        document.getElementById('result-title').innerText = '좋은 시작이에요!';
+        document.getElementById('result-subtitle').innerText = '내일은 더 잘할 수 있어요!';
+    } else {
+        document.getElementById('result-emoji').innerText = '🔥';
+        document.getElementById('result-title').innerText = '포기하지 마세요!';
+        document.getElementById('result-subtitle').innerText = '꾸준함이 실력을 만들어요!';
+    }
+    
+    showScreen('result-screen');
+}
+
+// ================= 초기 실행 =================
+updateHomeStats();
+</script>
+</body>
+</html>
